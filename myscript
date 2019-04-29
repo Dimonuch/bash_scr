@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# Create and check new user name
+
+printf "Script manage users\n" 
+echo "1 - Create user"
+echo "2 - Delete user"
+echo "3 - Output user information"
+echo "4 - Modification"
+echo "5 - Permission root-access"
+echo "Please choose the required option: "
+read num
+
+case $num in
+	1) 
+		echo -n "Enter name user: "
+	        read uname
+
+		if grep $uname /etc/passwd 
+		then
+			echo "User name is exists"
+		else
+			adduser "$uname"
+	  		echo "New user name was create"
+                 fi
+		 ;;
+	 2)
+		 echo -n "Enter name user: "
+			read uname
+       		 if grep $uname /etc/passwd 
+ 		 then
+			userdel -r "$uname"
+			echo "User $uname was deleted"
+		 else
+ 			echo "User name does not find"
+		 fi
+		 ;;
+	3) 
+		echo "Please user name: "
+	        read uname
+		if grep $uname /etc/passwd 
+		then
+		IFS=: read -a arr <<< $(getent passwd $uname)
+		info_groups=$(groups $uname)
+		info_passwd=$(chage -l $uname)
+		echo "-----------------------------------"
+		echo "Full information $uname"
+		printf "Login: ${arr[0]}, UID: ${arr[2]}, GID: ${arr[3]}, Full_Name: ${arr[4]}, HD: ${arr[5]}, Shell: ${arr[6]} \n" 
+		echo "-----------------------------------"
+		printf "$info_groups \n"
+		echo "-----------------------------------"
+		printf "$info_passwd \n"
+		else 
+			echo "User name does not exists"
+		fi
+		;;
+	4)
+		echo "Please user name: "
+		read uname
+		if grep $uname /etc/passwd
+		then
+			echo "1 - Change primary group"
+			echo "2 - Change supplementary groups"
+			echo "3 - Forced password change"
+			echo "4 - Force logout user"
+			echo "5 - Change information user"
+			echo "6 - Change account properties"
+			echo "------------------------------"
+			echo "Please choose option: "
+			read number
+			case $number in
+				1)
+					echo "Plese enter primary group name: "\n
+					read groupname
+					if grep $groupname /etc/group
+					then
+						usermod -g $groupname $uname
+						echo "Primary group change to $groupname for $uname"
+					else
+						echo "Name primary group does not exists"
+					fi
+				;;
+			2)
+				IFS=',' read -a grnames -p "Please enter supplementary groups name: "\n
+			        for grname in "${grnames[@]}"
+				do
+					usermod -a -G "$grname" "$uname" && echo"$uname is added to group $grname" || echo "Failed to add $uname to group $grname"
+				done
+		       		;;
+			3) 
+				chage -d 0 $uname
+				echo "Forced user to change password the first time login"
+				;;
+			4)
+				pkill -KILL -u $uname
+				echo "User was logout system"
+				;;
+			5)
+				chfn $uname
+				echo "User information was change"
+				;;
+			6)
+				chage $uname
+				echo "Account timeout was change"
+				;;
+			*)
+				echo "No search parametr"
+				;;
+			esac
+		else
+		       echo "User does not exists"
+	       fi	       
+		       ;;
+	5)
+		echo "Please user name: "
+		read uname
+		echo "Root access for $uname"
+		;;
+	*)
+		echo "Please correct number"
+		;;
+esac
+
+
+		 		
