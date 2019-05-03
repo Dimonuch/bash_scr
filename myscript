@@ -105,7 +105,7 @@ case $num in
 				echo "Account timeout was change"
 				;;
 			*)
-				echo "No search parametr"
+				echo "No search parameter"
 				;;
 			esac
 		else
@@ -125,8 +125,7 @@ case $num in
 			else
 				echo "User does not exists"
 			fi
-			echo "gpasswd -d $uname sudo" | at now + $time minute
-			#at now + $time hour gpasswd -d $uname sudo
+			echo "gpasswd -d $uname sudo" | at now + $time hour 
 		;;
 	*)
 		echo "Please choose correct number"
