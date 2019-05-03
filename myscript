@@ -2,12 +2,13 @@
 
 # Create and check new user name
 
-printf "Script manage users\n" 
+printf "### Script manage users ###\n" 
 echo "1 - Create user"
 echo "2 - Delete user"
 echo "3 - Output user information"
 echo "4 - Modification"
 echo "5 - Permission root-access"
+echo "-----------------------------------"
 echo "Please choose the required option: "
 read num
 
@@ -70,7 +71,7 @@ case $num in
 			read number
 			case $number in
 				1)
-					echo "Plese enter primary group name: "\n
+					echo "Please enter primary group name: "\n
 					read groupname
 					if grep $groupname /etc/group
 					then
@@ -114,10 +115,21 @@ case $num in
 	5)
 		echo "Please user name: "
 		read uname
-		echo "Root access for $uname"
+			echo "Please enter time limited root access: "
+			read limit
+			time=${limit:=8}
+			if  grep $uname /etc/passwd 
+			then
+				usermod -a -G sudo $uname 
+				echo "Grand root access for $uname to time limit $time hour"
+			else
+				echo "User does not exists"
+			fi
+			echo "gpasswd -d $uname sudo" | at now + $time minute
+			#at now + $time hour gpasswd -d $uname sudo
 		;;
 	*)
-		echo "Please correct number"
+		echo "Please choose correct number"
 		;;
 esac
 
