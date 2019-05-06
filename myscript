@@ -7,62 +7,67 @@ echo "1 - Create user"
 echo "2 - Delete user"
 echo "3 - Output user information"
 echo "4 - Modification"
-echo "5 - Permission root-access"
+echo "5 - Add root permission"
 echo "-----------------------------------"
 echo "Please choose the required option: "
 read num
 
 case $num in
-	1) 
-		echo -n "Enter name user: "
+	1)      
+		echo -n "You are creating new user. Please enter name user: "
 	        read uname
-
-		if grep $uname /etc/passwd 
+		# Check user name 
+		if [[ $(grep $uname /etc/passwd) ]] 
 		then
-			echo "User name is exists"
+			echo "User name $uname is exists"
 		else
-			adduser "$uname"
-	  		echo "New user name was create"
+			useradd -m  "$uname"
+			echo $uname:$uname | chpasswd
+	  		echo "New user $uname was create, change password at user\`s next login "
+			passwd -e $uname  # Force change password at user`s next login
+
                  fi
 		 ;;
-	 2)
-		 echo -n "Enter name user: "
+	 2)	 
+
+		 echo -n "You are deleting user. Please enter name user: "
 			read uname
-       		 if grep $uname /etc/passwd 
+			if [[ $(grep $uname /etc/passwd) ]] 
  		 then
 			userdel -r "$uname"
 			echo "User $uname was deleted"
 		 else
- 			echo "User name does not find"
+ 			echo "User name $uname does not find"
 		 fi
 		 ;;
 	3) 
-		echo "Please user name: "
+		echo "Get user information. Please enter user name: "
 	        read uname
-		if grep $uname /etc/passwd 
+		if [[ $(grep $uname /etc/passwd) ]] 
 		then
 		IFS=: read -a arr <<< $(getent passwd $uname)
 		info_groups=$(groups $uname)
 		info_passwd=$(chage -l $uname)
 		echo "-----------------------------------"
-		echo "Full information $uname"
+		echo "Full information $uname user"
 		printf "Login: ${arr[0]}, UID: ${arr[2]}, GID: ${arr[3]}, Full_Name: ${arr[4]}, HD: ${arr[5]}, Shell: ${arr[6]} \n" 
 		echo "-----------------------------------"
 		printf "$info_groups \n"
 		echo "-----------------------------------"
 		printf "$info_passwd \n"
 		else 
-			echo "User name does not exists"
+			echo "User name $uname does not exists"
 		fi
 		;;
 	4)
-		echo "Please user name: "
+		echo "You are modifying user information. Please enter user name: "
 		read uname
-		if grep $uname /etc/passwd
+		if [[ $(grep $uname /etc/passwd) ]]
 		then
+			echo "You can modify the following user information" 
 			echo "1 - Change primary group"
 			echo "2 - Change supplementary groups"
-			echo "3 - Forced password change"
+			echo "3 - Force password change"
 			echo "4 - Force logout user"
 			echo "5 - Change information user"
 			echo "6 - Change account properties"
@@ -71,64 +76,69 @@ case $num in
 			read number
 			case $number in
 				1)
-					echo "Please enter primary group name: "\n
+					echo "Please enter primary group name for $uname: "\n
 					read groupname
-					if grep $groupname /etc/group
+					if [[ $(grep $groupname /etc/group) ]]
 					then
 						usermod -g $groupname $uname
-						echo "Primary group change to $groupname for $uname"
+						echo "Primary group was change for $uname to $groupname"
 					else
-						echo "Name primary group does not exists"
+						echo "Primary group $groupname for $uname does not exists"
 					fi
 				;;
-			2)
-				IFS=',' read -a grnames -p "Please enter supplementary groups name: "\n
+			2)	
+				#Change supplementary group
+				IFS=',' read -a grnames -p "Please enter supplementary groups name for $uname (separator ","): "\n
 			        for grname in "${grnames[@]}"
 				do
-					usermod -a -G "$grname" "$uname" && echo"$uname is added to group $grname" || echo "Failed to add $uname to group $grname"
+					usermod -a -G "$grname" "$uname" && echo "$uname is added to group $grname" || echo "Failed to add $uname to group $grname"
 				done
 		       		;;
-			3) 
+			3)      
+			        echo "Force password change for $uname!!!"	
 				chage -d 0 $uname
-				echo "Forced user to change password the first time login"
+				echo "Forced password change for $uname the first time login"
 				;;
-			4)
+			4)	
+				echo "Force logout $uname"
 				pkill -KILL -u $uname
-				echo "User was logout system"
+				echo "$uname was logout system"
 				;;
 			5)
+				echo "Change user information $uname"
 				chfn $uname
-				echo "User information was change"
+				echo "User information for $uname was change"
 				;;
 			6)
+				echo "Change account properties to $uname"
 				chage $uname
 				echo "Account timeout was change"
 				;;
 			*)
-				echo "No search parameter"
+				echo "No search parameter!!! Please enter to correct the number option!!!"
 				;;
 			esac
 		else
-		       echo "User does not exists"
+		       echo "User does not exists!!!"
 	       fi	       
 		       ;;
 	5)
-		echo "Please user name: "
+		echo "You are adding root permission! Please enter user name: "
 		read uname
-			echo "Please enter time limited root access: "
+		if [[ $(grep $uname /etc/passwd) ]]	
+		then
+			echo "Please enter time limited root access (default - 8h): "
 			read limit
 			time=${limit:=8}
-			if  grep $uname /etc/passwd 
-			then
-				usermod -a -G sudo $uname 
-				echo "Grand root access for $uname to time limit $time hour"
-			else
-				echo "User does not exists"
-			fi
-			echo "gpasswd -d $uname sudo" | at now + $time hour 
+			usermod -a -G sudo $uname 
+			echo "Grand root permission for $uname to time limit $time hour"
+		else
+			echo "User does not exists"
+		fi
+		echo "gpasswd -d $uname sudo" | at now + $time hour 
 		;;
 	*)
-		echo "Please choose correct number"
+		echo "Please choose correct the number option"
 		;;
 esac
 
