@@ -8,6 +8,7 @@ echo "2 - Delete user"
 echo "3 - Output user information"
 echo "4 - Modification"
 echo "5 - Add root permission"
+echo "6 - Exit" 
 echo "-----------------------------------"
 echo "Please choose the required option: "
 read num
@@ -71,12 +72,13 @@ case $num in
 			echo "4 - Force logout user"
 			echo "5 - Change information user"
 			echo "6 - Change account properties"
+			echo "7 - Exit"
 			echo "------------------------------"
 			echo "Please choose option: "
 			read number
 			case $number in
 				1)
-					echo "Please enter primary group name for $uname: "\n
+					echo "Please enter primary group name for $uname: "
 					read groupname
 					if [[ $(grep $groupname /etc/group) ]]
 					then
@@ -114,6 +116,9 @@ case $num in
 				chage $uname
 				echo "Account timeout was change"
 				;;
+			7) 	echo "Good bay!!!"
+				exit
+				;;	
 			*)
 				echo "No search parameter!!! Please enter to correct the number option!!!"
 				;;
@@ -137,8 +142,11 @@ case $num in
 		fi
 		echo "gpasswd -d $uname sudo" | at now + $time hour 
 		;;
+	6) echo "Good bay!!!"
+		exit
+		;;	
 	*)
-		echo "Please choose correct the number option"
+		echo "Incorrect option. Please choose correct the number option"
 		;;
 esac
 
